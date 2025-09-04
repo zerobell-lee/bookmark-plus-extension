@@ -1,0 +1,187 @@
+// Theme Toggle Button Styles
+.theme-toggle {
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--btn-secondary-border);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+
+  // Smooth transition for theme changes
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--btn-secondary-hover);
+    border-color: var(--border-dark);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    background: var(--bg-active);
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent-primary);
+  }
+
+  .theme-icon {
+    font-size: inherit;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+  }
+
+  .theme-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    transition: color 0.2s ease;
+  }
+
+  &:hover .theme-label {
+    color: var(--text-primary);
+  }
+
+  // Animate icon on hover
+  &:hover .theme-icon {
+    transform: rotate(15deg) scale(1.1);
+  }
+
+  &:disabled .theme-icon {
+    animation: spin 1s linear infinite;
+  }
+}
+
+// Size variants
+.theme-toggle-small {
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  font-size: 12px;
+
+  .theme-icon {
+    font-size: 12px;
+  }
+
+  &.with-label {
+    width: auto;
+    min-width: 28px;
+    padding: 4px 8px;
+  }
+}
+
+.theme-toggle-medium {
+  width: 32px;
+  height: 32px;
+  padding: 8px;
+  font-size: 14px;
+
+  .theme-icon {
+    font-size: 14px;
+  }
+
+  &.with-label {
+    width: auto;
+    min-width: 32px;
+    padding: 6px 12px;
+  }
+}
+
+.theme-toggle-large {
+  width: 40px;
+  height: 40px;
+  padding: 10px;
+  font-size: 16px;
+
+  .theme-icon {
+    font-size: 16px;
+  }
+
+  &.with-label {
+    width: auto;
+    min-width: 40px;
+    padding: 8px 16px;
+  }
+
+  .theme-label {
+    font-size: 13px;
+  }
+}
+
+// Loading animation
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Special styles for different themes
+[data-theme="dark"] .theme-toggle {
+  // In dark mode, make button slightly more prominent
+  border-color: var(--border-medium);
+  
+  &:hover {
+    border-color: var(--border-focus);
+  }
+}
+
+// Auto theme indication
+.theme-toggle[title*="auto"] {
+  position: relative;
+  
+  &::after {
+    content: '●';
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 6px;
+    color: var(--accent-primary);
+    opacity: 0.7;
+  }
+}
+
+// Compact variant for header
+.theme-toggle-compact {
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  
+  &:hover {
+    background: var(--bg-hover);
+  }
+
+  &:active {
+    background: var(--bg-active);
+  }
+
+  .theme-icon {
+    font-size: 16px;
+  }
+
+  // Remove auto indicator for compact style
+  &::after {
+    display: none;
+  }
+}

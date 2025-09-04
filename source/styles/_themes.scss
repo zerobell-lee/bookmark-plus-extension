@@ -1,0 +1,161 @@
+// Theme System for Bookmark+
+// Light and Dark theme color definitions
+
+// Light Theme (Default)
+:root {
+  // Background Colors
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f3f3;
+  --bg-tertiary: #fafafa;
+  --bg-hover: #f0f0f0;
+  --bg-active: #eeeeee;
+  --bg-modal: rgba(0, 0, 0, 0.5);
+  
+  // Text Colors
+  --text-primary: #0d0d0d;
+  --text-secondary: #666666;
+  --text-tertiary: #888888;
+  --text-muted: #6c757d;
+  --text-inverse: #ffffff;
+  
+  // Border Colors
+  --border-light: #f0f0f0;
+  --border-medium: #e0e0e0;
+  --border-dark: #cccccc;
+  --border-focus: #007bff;
+  
+  // Button Colors
+  --btn-primary-bg: #000000;
+  --btn-primary-hover: #333333;
+  --btn-primary-active: #111111;
+  --btn-secondary-bg: transparent;
+  --btn-secondary-border: #e0e0e0;
+  --btn-secondary-hover: #f5f5f5;
+  
+  // Tag Colors
+  --tag-bg: #f0f0f0;
+  --tag-text: #666666;
+  
+  // Accent Colors (maintain branding)
+  --accent-blue: #8892b0;
+  --accent-primary: #007bff;
+  --accent-success: #28a745;
+  --accent-warning: #ffc107;
+  --accent-danger: #dc3545;
+  
+  // Shadow
+  --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-heavy: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+// Dark Theme
+[data-theme="dark"] {
+  // Background Colors
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #242424;
+  --bg-hover: #404040;
+  --bg-active: #4a4a4a;
+  --bg-modal: rgba(0, 0, 0, 0.8);
+  
+  // Text Colors
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #909090;
+  --text-muted: #808080;
+  --text-inverse: #0d0d0d;
+  
+  // Border Colors
+  --border-light: #404040;
+  --border-medium: #505050;
+  --border-dark: #606060;
+  --border-focus: #4da6ff;
+  
+  // Button Colors
+  --btn-primary-bg: #ffffff;
+  --btn-primary-hover: #e0e0e0;
+  --btn-primary-active: #d0d0d0;
+  --btn-secondary-bg: transparent;
+  --btn-secondary-border: #505050;
+  --btn-secondary-hover: #2d2d2d;
+  
+  // Tag Colors
+  --tag-bg: #404040;
+  --tag-text: #b0b0b0;
+  
+  // Accent Colors (slightly adjusted for dark theme)
+  --accent-blue: #9ca6c7;
+  --accent-primary: #4da6ff;
+  --accent-success: #40c963;
+  --accent-warning: #ffdb4d;
+  --accent-danger: #ff6b6b;
+  
+  // Shadow (darker and more pronounced)
+  --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-heavy: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+// Auto theme (follows system preference)
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    // Background Colors
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #242424;
+    --bg-hover: #404040;
+    --bg-active: #4a4a4a;
+    --bg-modal: rgba(0, 0, 0, 0.8);
+    
+    // Text Colors
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-tertiary: #909090;
+    --text-muted: #808080;
+    --text-inverse: #0d0d0d;
+    
+    // Border Colors
+    --border-light: #404040;
+    --border-medium: #505050;
+    --border-dark: #606060;
+    --border-focus: #4da6ff;
+    
+    // Button Colors
+    --btn-primary-bg: #ffffff;
+    --btn-primary-hover: #e0e0e0;
+    --btn-primary-active: #d0d0d0;
+    --btn-secondary-bg: transparent;
+    --btn-secondary-border: #505050;
+    --btn-secondary-hover: #2d2d2d;
+    
+    // Tag Colors
+    --tag-bg: #404040;
+    --tag-text: #b0b0b0;
+    
+    // Accent Colors
+    --accent-blue: #9ca6c7;
+    --accent-primary: #4da6ff;
+    --accent-success: #40c963;
+    --accent-warning: #ffdb4d;
+    --accent-danger: #ff6b6b;
+    
+    // Shadow
+    --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-heavy: 0 10px 25px rgba(0, 0, 0, 0.4);
+  }
+}
+
+// Theme transition animation
+* {
+  transition: background-color 0.2s ease, 
+              color 0.2s ease, 
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+// Disable transitions during theme switching to prevent flicker
+.theme-switching * {
+  transition: none !important;
+}

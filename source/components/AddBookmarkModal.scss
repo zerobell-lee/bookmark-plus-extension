@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--bg-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,12 +13,12 @@
 }
 
 .modal-container {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-heavy);
   max-width: 500px;
   width: 90vw;
-  max-height: 90vh; // 높이 확장
+  max-height: 90vh; // Expanded height
   overflow: hidden;
   animation: modalSlideIn 0.2s ease-out;
 }
@@ -66,8 +66,8 @@
 
 .modal-form {
   padding: 24px;
-  max-height: calc(90vh - 80px); // 헤더 높이 제외
-  overflow-y: auto; // 스크롤 가능하게
+  max-height: calc(90vh - 80px); // Exclude header height
+  overflow-y: auto; // Enable scrolling
 
   .form-group {
     margin-bottom: 20px;

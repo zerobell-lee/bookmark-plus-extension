@@ -54,7 +54,7 @@ const AddFolderModal: React.FC<AddFolderModalProps> = ({ currentFolderId, onClos
     
     if (folder.parentId) {
       const parentPath = getFolderPath(folder.parentId);
-      // 루트(/)인 경우 특별 처리
+      // Handle root path (/) case
       if (parentPath === '/') {
         return `/${folder.name}`;
       }

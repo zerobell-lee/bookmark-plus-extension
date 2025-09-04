@@ -57,7 +57,7 @@ const EditBookmarkModal: React.FC<EditBookmarkModalProps> = ({ bookmark, onClose
         await bookmarkManager['saveBookmarks']();
         await bookmarkManager['saveTags']();
         
-        // Context 데이터 다시 로드
+        // Reload context data
         await loadData();
       }
 
@@ -70,7 +70,7 @@ const EditBookmarkModal: React.FC<EditBookmarkModalProps> = ({ bookmark, onClose
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Cmd+Enter 또는 Ctrl+Enter로 저장
+    // Save with Cmd+Enter or Ctrl+Enter
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
       saveBookmark();
@@ -90,7 +90,7 @@ const EditBookmarkModal: React.FC<EditBookmarkModalProps> = ({ bookmark, onClose
     
     if (folder.parentId) {
       const parentPath = getFolderPath(folder.parentId);
-      // 루트(/)인 경우 특별 처리
+      // Handle root path (/) case
       if (parentPath === '/') {
         return `/${folder.name}`;
       }
@@ -105,7 +105,7 @@ const EditBookmarkModal: React.FC<EditBookmarkModalProps> = ({ bookmark, onClose
     }
   };
 
-  // 기존 태그들 중에서 자주 사용되는 것들 추천
+  // Recommend frequently used tags from existing tags
   const suggestedTags = Array.from(state.tags)
     .filter(tag => !tags.includes(tag))
     .slice(0, 6);

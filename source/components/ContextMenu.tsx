@@ -16,10 +16,10 @@ interface ContextMenuProps {
 const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, target, type, onClose, onEdit }) => {
   const { deleteBookmark, deleteFolder, refreshFavicon } = useBookmarks();
 
-  // 뷰포인트 내에서 메뉴 위치 자동 조정
+  // Auto-adjust menu position within viewport
   const getAdjustedPosition = () => {
     const menuWidth = 160;
-    const menuHeight = type === 'bookmark' ? 200 : 60; // 북마크는 6개 항목, 폴더는 1개 항목
+    const menuHeight = type === 'bookmark' ? 200 : 60; // Bookmark has 6 items, folder has 1 item
     const padding = 8;
     
     const viewportWidth = window.innerWidth;
@@ -28,17 +28,17 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, target, type, onClose, 
     let adjustedX = x;
     let adjustedY = y;
     
-    // 오른쪽으로 넘어가면 왼쪽으로 이동
+    // Move to left if overflowing to the right
     if (x + menuWidth > viewportWidth - padding) {
       adjustedX = x - menuWidth;
     }
     
-    // 아래로 넘어가면 위쪽으로 이동
+    // Move upward if overflowing downward
     if (y + menuHeight > viewportHeight - padding) {
       adjustedY = y - menuHeight;
     }
     
-    // 최소값 보정
+    // Minimum value correction
     adjustedX = Math.max(padding, adjustedX);
     adjustedY = Math.max(padding, adjustedY);
     
@@ -97,7 +97,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, target, type, onClose, 
         case 'edit':
           if (type === 'bookmark' && onEdit) {
             onEdit();
-            return; // onClose는 onEdit에서 처리되므로 여기서는 return
+            return; // onClose is handled in onEdit, so return here
           }
           break;
       }

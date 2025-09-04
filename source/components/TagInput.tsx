@@ -6,7 +6,7 @@ interface TagInputProps {
   allTags: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
-  onSave?: () => void; // 빈 상태에서 Enter 시 호출될 저장 함수
+  onSave?: () => void; // Save function to be called when Enter is pressed in empty state
 }
 
 const TagInput: React.FC<TagInputProps> = ({ 
@@ -23,7 +23,7 @@ const TagInput: React.FC<TagInputProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 입력값에 따른 자동완성 제안
+  // Auto-complete suggestions based on input
   useEffect(() => {
     if (input.trim()) {
       const filtered = allTags
@@ -65,7 +65,7 @@ const TagInput: React.FC<TagInputProps> = ({
         } else if (input.trim()) {
           addTag(input.trim());
         } else if (!input.trim() && onSave) {
-          // 빈 상태에서 Enter → 저장
+          // Empty state + Enter → Save
           onSave();
         }
         break;
@@ -129,7 +129,7 @@ const TagInput: React.FC<TagInputProps> = ({
           onKeyDown={handleKeyDown}
           onFocus={() => setShowSuggestions(suggestions.length > 0)}
           onBlur={(e) => {
-            // 제안 클릭을 위해 약간의 지연
+            // Slight delay for suggestion clicks
             setTimeout(() => {
               if (!containerRef.current?.contains(e.relatedTarget as Node)) {
                 setShowSuggestions(false);

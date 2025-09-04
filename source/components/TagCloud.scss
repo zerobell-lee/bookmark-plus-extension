@@ -1,13 +1,13 @@
 .tag-cloud {
-  background: white;
+  background: var(--bg-primary);
   padding: 16px 20px;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--border-light);
 
   &.empty {
     text-align: center;
     
     .empty-message {
-      color: #6c757d;
+      color: var(--text-muted);
       font-size: 14px;
       font-style: italic;
     }
@@ -22,13 +22,13 @@
     .tag-cloud-title {
       font-size: 14px;
       font-weight: 600;
-      color: #495057;
+      color: var(--text-primary);
     }
 
     .clear-tags-btn {
       background: none;
       border: none;
-      color: #dc3545;
+      color: var(--accent-danger);
       font-size: 12px;
       cursor: pointer;
       padding: 4px 8px;
@@ -36,8 +36,8 @@
       transition: all 0.2s ease;
 
       &:hover {
-        background: #f8d7da;
-        color: #721c24;
+        background: var(--bg-hover);
+        color: var(--accent-danger);
       }
     }
   }
@@ -49,9 +49,9 @@
     margin-bottom: 12px;
 
     .tag-item {
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
-      color: #495057;
+      background: var(--tag-bg);
+      border: 2px solid var(--border-medium);
+      color: var(--tag-text);
       padding: 6px 12px;
       border-radius: 16px;
       font-size: 12px;
@@ -63,19 +63,20 @@
       gap: 4px;
 
       &:hover {
-        background: #e7f3ff;
-        border-color: #b3d7ff;
-        color: #0066cc;
+        background: var(--bg-hover);
+        border-color: var(--accent-primary);
+        color: var(--accent-primary);
       }
 
       &.selected {
-        background: #667eea;
-        border-color: #667eea;
-        color: white;
+        background: var(--accent-primary);
+        border-color: var(--accent-primary);
+        color: var(--text-inverse);
 
         &:hover {
-          background: #5a67d8;
-          border-color: #5a67d8;
+          background: var(--accent-primary);
+          border-color: var(--accent-primary);
+          opacity: 0.9;
         }
       }
 
@@ -87,11 +88,11 @@
 
   .selected-tags-info {
     font-size: 12px;
-    color: #6c757d;
+    color: var(--text-secondary);
     font-style: italic;
     padding: 8px 12px;
-    background: #f8f9fa;
+    background: var(--bg-tertiary);
     border-radius: 6px;
-    border-left: 3px solid #667eea;
+    border-left: 3px solid var(--accent-primary);
   }
 }

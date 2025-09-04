@@ -61,7 +61,7 @@ const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({ currentFolderId, on
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Cmd+Enter 또는 Ctrl+Enter로 저장
+    // Save with Cmd+Enter or Ctrl+Enter
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
       saveBookmark();
@@ -81,7 +81,7 @@ const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({ currentFolderId, on
     
     if (folder.parentId) {
       const parentPath = getFolderPath(folder.parentId);
-      // 루트(/)인 경우 특별 처리
+      // Handle root path (/) case
       if (parentPath === '/') {
         return `/${folder.name}`;
       }

@@ -17,7 +17,7 @@ export class BookmarkManager {
       this.bookmarks = result.bookmarks || [];
       this.folders = result.folders || this.createDefaultFolders();
       
-      // 북마크에서 태그들을 수집해서 this.tags에 추가
+      // Collect tags from bookmarks and add to this.tags
       this.bookmarks.forEach(bookmark => {
         if (bookmark.tags && bookmark.tags.length > 0) {
           bookmark.tags.forEach(tag => this.tags.add(tag));
@@ -33,7 +33,7 @@ export class BookmarkManager {
       const result = await browser.storage.sync.get(['tags']);
       const storedTags = result.tags || [];
       
-      // 저장된 태그들도 기존 태그들에 추가 (덮어쓰지 않고)
+      // Add stored tags to existing tags (without overwriting)
       storedTags.forEach((tag: string) => this.tags.add(tag));
     } catch (error) {
       console.error('Error loading tags:', error);
@@ -64,7 +64,7 @@ export class BookmarkManager {
     tags: string[] = [], 
     favicon: string | null = null
   ): Promise<Bookmark> {
-    // 중복 URL 체크
+    // Check for duplicate URL
     const existingBookmark = this.bookmarks.find(b => b.url === url);
     if (existingBookmark) {
       throw new Error(`Bookmark already exists for this URL: "${existingBookmark.title}"`);
@@ -199,7 +199,7 @@ export class BookmarkManager {
     try {
       const data = JSON.parse(jsonData);
       
-      // Version 검증
+      // Version validation
       if (options.validateVersion && data.version) {
         const importVersion = this.parseVersion(data.version);
         const currentVersion = this.parseVersion('1.0.0');
@@ -209,7 +209,7 @@ export class BookmarkManager {
         }
       }
 
-      // 데이터 검증
+      // Data validation
       if (!this.validateImportData(data)) {
         throw new Error('Invalid import data format');
       }
@@ -391,17 +391,17 @@ export class BookmarkManager {
 
   private async extractFavicon(url: string): Promise<string> {
     try {
-      // 1. 현재 탭의 favIconUrl 시도
+      // 1. Try current tab's favIconUrl
       try {
         const tabs = await browser.tabs.query({ active: true, currentWindow: true });
         if (tabs[0] && tabs[0].url === url && tabs[0].favIconUrl) {
           return tabs[0].favIconUrl;
         }
       } catch (error) {
-        // 탭 접근 실패 시 계속 진행
+        // Continue if tab access fails
       }
 
-      // 2. 기본 favicon 경로들 시도 (더 많은 경로 추가)
+      // 2. Try default favicon paths (added more paths)
       const domain = new URL(url);
       const faviconUrls = [
         `${domain.origin}/favicon.ico`,
@@ -426,7 +426,7 @@ export class BookmarkManager {
         }
       }
 
-      // 3. 외부 favicon 서비스들 시도 (여러 서비스로 안정성 향상)
+      // 3. Try external favicon services (multiple services for better reliability)
       const faviconServices = [
         `https://www.google.com/s2/favicons?domain=${domain.hostname}&sz=16`,
         `https://icons.duckduckgo.com/ip3/${domain.hostname}.ico`,
@@ -437,7 +437,7 @@ export class BookmarkManager {
       for (const serviceUrl of faviconServices) {
         try {
           if (serviceUrl.includes('favicongrabber.com')) {
-            // Favicongrabber API는 JSON 응답을 처리해야 함
+            // Favicongrabber API requires JSON response handling
             const response = await fetch(serviceUrl);
             const data = await response.json();
             if (data.icons && data.icons.length > 0) {
@@ -456,7 +456,7 @@ export class BookmarkManager {
         }
       }
 
-      // 4. 모든 시도가 실패하면 기본 아이콘 사용
+      // 4. Use default icon if all attempts fail
       return this.getDefaultFavicon(url);
     } catch (error) {
       return this.getDefaultFavicon(url);
@@ -522,7 +522,7 @@ export class BookmarkManager {
         const newFavicon = await this.extractFavicon(bookmark.url);
         bookmark.favicon = newFavicon;
       } catch (error) {
-        // favicon 갱신 실패는 무시
+        // Ignore favicon refresh failures
       }
     }
 
@@ -560,7 +560,7 @@ export class BookmarkManager {
       const [movedBookmark] = folderBookmarks.splice(fromIndex, 1);
       folderBookmarks.splice(toIndex, 0, movedBookmark);
 
-      // 다른 폴더의 북마크들과 재정렬된 북마크들을 합쳐서 저장
+      // Combine bookmarks from other folders with reordered bookmarks and save
       const otherBookmarks = this.bookmarks.filter(b => b.folderId !== folderId);
       this.bookmarks = [...otherBookmarks, ...folderBookmarks];
 

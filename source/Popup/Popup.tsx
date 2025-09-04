@@ -8,6 +8,8 @@ import AddBookmarkModal from '../components/AddBookmarkModal';
 import AddFolderModal from '../components/AddFolderModal';
 import EditBookmarkModal from '../components/EditBookmarkModal';
 import ContextMenu from '../components/ContextMenu';
+import { ThemeToggle } from '../components/ThemeToggle';
+import '../components/ThemeToggle.scss';
 import './styles.scss';
 
 const Popup: React.FC = () => {
@@ -134,6 +136,7 @@ const Popup: React.FC = () => {
           Bookmark+
         </h1>
         <div className="popup-controls">
+          <ThemeToggle className="theme-toggle-compact" size="small" />
           <button 
             className="btn-primary" 
             onClick={() => setShowAddBookmarkModal(true)}

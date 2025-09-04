@@ -146,7 +146,7 @@ interface BookmarkProviderProps {
   children: ReactNode;
 }
 
-// 전역 BookmarkManager 인스턴스 (싱글톤 패턴)
+// Global BookmarkManager instance (singleton pattern)
 let globalBookmarkManager: BookmarkManager | null = null;
 
 const getBookmarkManager = (): BookmarkManager => {
@@ -177,7 +177,7 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
   const addBookmark = async (title: string, url: string, folderId: string = 'root', tags: string[] = []) => {
     try {
       await bookmarkManager.createBookmark(title, url, folderId, tags);
-      // BookmarkManager가 이미 저장했으므로, Context를 다시 로드
+      // Reload context since BookmarkManager has already saved
       await loadData();
     } catch (error) {
       throw error;
@@ -193,7 +193,7 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
 
   const addFolder = async (name: string, parentId: string = 'root') => {
     bookmarkManager.createFolder(name, parentId);
-    await loadData(); // BookmarkManager에서 데이터를 다시 로드
+    await loadData(); // Reload data from BookmarkManager
   };
 
   const deleteFolder = async (id: string) => {
@@ -252,7 +252,7 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
   const reorderBookmarks = async (fromIndex: number, toIndex: number) => {
     const success = await bookmarkManager.reorderBookmarks(state.currentFolderId, fromIndex, toIndex);
     if (success) {
-      await loadData(); // 데이터 다시 로드하여 순서 반영
+      await loadData(); // Reload data to reflect new order
     }
   };
 

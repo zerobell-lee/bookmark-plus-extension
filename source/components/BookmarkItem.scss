@@ -6,11 +6,11 @@
   transition: all 0.15s ease;
 
   &:hover {
-    background: #fafafa;
+    background: var(--bg-tertiary);
   }
 
   &:active {
-    background: #f0f0f0;
+    background: var(--bg-hover);
   }
 
   &[draggable="true"]:hover {
@@ -22,8 +22,8 @@
   }
 
   &.drag-over {
-    border-top: 2px solid #007bff;
-    background: #f8f9ff;
+    border-top: 2px solid var(--accent-primary);
+    background: var(--bg-tertiary);
     transform: translateY(1px);
   }
 
@@ -49,7 +49,7 @@
 
     .default-favicon {
       font-size: 16px;
-      color: #6c757d;
+      color: var(--text-muted);
     }
   }
 
@@ -60,7 +60,7 @@
     .bookmark-title {
       font-size: 13px;
       font-weight: 400;
-      color: #1a1a1a;
+      color: var(--text-primary);
       margin-bottom: 1px;
       white-space: nowrap;
       overflow: hidden;
@@ -70,7 +70,7 @@
 
     .bookmark-url {
       font-size: 11px;
-      color: #888888;
+      color: var(--text-tertiary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -84,8 +84,8 @@
       gap: 3px;
 
       .tag {
-        background: #f0f0f0;
-        color: #666666;
+        background: var(--tag-bg);
+        color: var(--tag-text);
         padding: 1px 5px;
         border-radius: 8px;
         font-size: 10px;
@@ -101,8 +101,8 @@
 
     .visit-count {
       font-size: 11px;
-      color: #6c757d;
-      background: #f8f9fa;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
       padding: 2px 6px;
       border-radius: 10px;
       display: flex;

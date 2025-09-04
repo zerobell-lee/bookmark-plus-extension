@@ -10,7 +10,7 @@
   padding: 6px 0;
   animation: contextMenuFadeIn 0.12s ease-out;
   
-  // 뷰포인트 밖으로 나가지 않도록 보장
+  // Ensure menu stays within viewport bounds
   max-height: 90vh;
   overflow-y: auto;
 
