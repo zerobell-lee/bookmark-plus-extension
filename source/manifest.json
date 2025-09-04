@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark+",
+  "version": "1.0.0",
+
+  "description": "Enhanced bookmark management with tags, advanced search, and folder organization",
+
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs"
+  ],
+
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+
+  "__chrome__minimum_chrome_version": "88",
+  "__opera__minimum_opera_version": "74",
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Bookmark+ - Enhanced bookmark management"
+  },
+
+  "background": {
+    "service_worker": "js/background.bundle.js"
+  },
+
+  "icons": {
+    "16": "assets/icons/favicon-16.png",
+    "32": "assets/icons/favicon-32.png",
+    "48": "assets/icons/favicon-48.png",
+    "128": "assets/icons/favicon-128.png"
+  },
+
+  "__firefox__applications": {
+    "gecko": {
+      "id": "{BOOKMARK-PLUS-UUID-HERE}"
+    }
+  }
+}

@@ -1,0 +1,89 @@
+// Inherits all styles from AddBookmarkModal.scss
+@import 'AddBookmarkModal';
+
+.edit-bookmark-modal {
+  max-height: 90vh; // EditBookmarkModal은 더 높게
+  
+  .modal-form {
+    max-height: calc(90vh - 80px); // 헤더 높이 제외
+    overflow-y: auto; // 스크롤 가능하게
+  }
+  .disabled-input {
+    background: #f8f8f8 !important;
+    color: #888888 !important;
+    cursor: not-allowed;
+  }
+
+  .current-tags, .suggested-tags {
+    margin-top: 8px;
+    
+    .tags-label {
+      font-size: 12px;
+      color: #666666;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 6px;
+    }
+  }
+
+  .current-tags {
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      background: #000000;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      margin: 2px 4px 2px 0;
+      gap: 4px;
+
+      .remove-tag-btn {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.8);
+        cursor: pointer;
+        font-size: 10px;
+        padding: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+      }
+    }
+  }
+
+  .suggested-tags {
+    .tag-suggestion {
+      background: #f0f0f0;
+      color: #666666;
+      border: 1px solid #e0e0e0;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 400;
+      margin: 2px 4px 2px 0;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: #e0e0e0;
+        color: #333333;
+        border-color: #cccccc;
+      }
+
+      &:active {
+        background: #d0d0d0;
+      }
+    }
+  }
+}

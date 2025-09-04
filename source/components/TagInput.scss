@@ -1,0 +1,132 @@
+.tag-input-container {
+  position: relative;
+  width: 100%;
+
+  .tag-input-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    background: white;
+    min-height: 40px;
+    cursor: text;
+    transition: border-color 0.2s ease;
+
+    &:focus-within {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      background: #000000;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      gap: 4px;
+      white-space: nowrap;
+      animation: tagSlideIn 0.2s ease-out;
+
+      .remove-tag-btn {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.8);
+        cursor: pointer;
+        font-size: 10px;
+        padding: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+      }
+    }
+
+    .tag-input {
+      border: none;
+      outline: none;
+      background: none;
+      font-size: 14px;
+      flex: 1;
+      min-width: 120px;
+      padding: 2px 0;
+
+      &::placeholder {
+        color: #adb5bd;
+      }
+    }
+  }
+
+  .suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: 4px;
+
+    .suggestion-item {
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+      color: #495057;
+
+      &:hover,
+      &.selected {
+        background: #f8f9fa;
+        color: #000;
+      }
+
+      &.selected {
+        background: #e3f2fd;
+      }
+    }
+  }
+
+  .tag-help {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 6px;
+    display: block;
+  }
+}
+
+@keyframes tagSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+// Focus styles for accessibility
+.tag-input-wrapper:focus-within {
+  .tag-chip {
+    .remove-tag-btn {
+      opacity: 1;
+    }
+  }
+}

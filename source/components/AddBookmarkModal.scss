@@ -1,0 +1,171 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 90vw;
+  max-height: 90vh; // 높이 확장
+  overflow: hidden;
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .modal-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+}
+
+.modal-form {
+  padding: 24px;
+  max-height: calc(90vh - 80px); // 헤더 높이 제외
+  overflow-y: auto; // 스크롤 가능하게
+
+  .form-group {
+    margin-bottom: 20px;
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #495057;
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e9ecef;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      background: white;
+      box-sizing: border-box;
+
+      &:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      &::placeholder {
+        color: #adb5bd;
+      }
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    .form-help {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 4px;
+      display: block;
+    }
+  }
+
+  .error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+  }
+
+  .keyboard-shortcuts-hint {
+    text-align: center;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    
+    small {
+      color: #6c757d;
+      font-size: 11px;
+      
+      kbd {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 3px;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px #ffffff;
+        color: #495057;
+        display: inline-block;
+        font-size: 10px;
+        font-family: monospace;
+        line-height: 1;
+        padding: 2px 4px;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 16px;
+    
+    .enhanced-save-btn {
+      font-weight: 600;
+      position: relative;
+      
+      &:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      }
+      
+      &:not(:disabled):active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
