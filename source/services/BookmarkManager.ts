@@ -1,4 +1,4 @@
-import { Bookmark, Folder, ImportOptions, ImportResult, ExportData } from '../types/Bookmark';
+import { Bookmark, Folder, ImportOptions, ImportResult, ExportData, SearchResult, OpenGraphData } from '../types/Bookmark';
 import { browser } from 'webextension-polyfill-ts';
 
 export class BookmarkManager {
@@ -53,16 +53,32 @@ export class BookmarkManager {
   }
 
   async createBookmark(title: string, url: string, folderId: string = 'root', tags: string[] = []): Promise<Bookmark> {
-    const favicon = await this.extractFavicon(url);
-    return this.createBookmarkWithFavicon(title, url, folderId, tags, favicon);
+    const [favicon, openGraph] = await Promise.all([
+      this.extractFavicon(url),
+      this.extractOpenGraph(url)
+    ]);
+    
+    return this.createBookmarkWithMetadata(title, url, folderId, tags, favicon, openGraph);
   }
 
+  // Legacy method for backward compatibility
   async createBookmarkWithFavicon(
     title: string, 
     url: string, 
     folderId: string = 'root', 
     tags: string[] = [], 
     favicon: string | null = null
+  ): Promise<Bookmark> {
+    return this.createBookmarkWithMetadata(title, url, folderId, tags, favicon, null);
+  }
+
+  async createBookmarkWithMetadata(
+    title: string, 
+    url: string, 
+    folderId: string = 'root', 
+    tags: string[] = [], 
+    favicon: string | null = null,
+    openGraph: OpenGraphData | null = null
   ): Promise<Bookmark> {
     // Check for duplicate URL
     const existingBookmark = this.bookmarks.find(b => b.url === url);
@@ -81,6 +97,8 @@ export class BookmarkManager {
       folderId,
       tags,
       favicon: favicon || '',
+      openGraph: openGraph || undefined,
+      hasRichPreview: Boolean(openGraph && (openGraph.image || openGraph.description)),
       dateAdded: new Date().toISOString(),
       dateUpdated: new Date().toISOString(),
       visitCount: 0,
@@ -132,6 +150,9 @@ export class BookmarkManager {
     if (bookmark) {
       bookmark.tags = bookmark.tags.filter(t => t !== tag);
       this.saveBookmarks();
+      
+      // Check if tag is now orphaned and clean up
+      this.cleanupOrphanedTags();
     }
   }
 
@@ -346,6 +367,10 @@ export class BookmarkManager {
     
     this.bookmarks = this.bookmarks.filter(b => b.id !== bookmarkId);
     this.saveBookmarks();
+    
+    // Clean up orphaned tags after bookmark deletion
+    this.cleanupOrphanedTags();
+    
     return true;
   }
 
@@ -507,6 +532,200 @@ export class BookmarkManager {
     return color;
   }
 
+
+  // Extract OpenGraph metadata from URL
+  private async extractOpenGraph(url: string): Promise<OpenGraphData | null> {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Bookmark+ Extension)',
+        },
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const html = await response.text();
+      const openGraphData: OpenGraphData = {};
+
+      // Parse OpenGraph meta tags
+      const ogTagRegex = /<meta\s+property\s*=\s*["']og:([^"']+)["']\s+content\s*=\s*["']([^"']*)["'][^>]*>/gi;
+      let match;
+
+      while ((match = ogTagRegex.exec(html)) !== null) {
+        const property = match[1];
+        const content = match[2];
+
+        switch (property) {
+          case 'title':
+            openGraphData.title = content;
+            break;
+          case 'description':
+            openGraphData.description = content;
+            break;
+          case 'image':
+            if (this.isValidImageUrl(content)) {
+              openGraphData.image = content;
+            }
+            break;
+          case 'site_name':
+            openGraphData.siteName = content;
+            break;
+          case 'type':
+            openGraphData.type = content;
+            break;
+          case 'url':
+            openGraphData.url = content;
+            break;
+        }
+      }
+
+      // Validate minimum requirements
+      if (!openGraphData.title && !openGraphData.image) {
+        return null;
+      }
+
+      return openGraphData;
+    } catch (error) {
+      console.log('OpenGraph extraction failed for:', url, error);
+      return null;
+    }
+  }
+
+  // Validate image URL for OpenGraph
+  private isValidImageUrl(imageUrl: string): boolean {
+    try {
+      const url = new URL(imageUrl);
+      const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+      const extension = url.pathname.toLowerCase();
+      
+      return validExtensions.some(ext => extension.includes(ext)) ||
+             url.hostname.includes('images') || // Common image hosting patterns
+             url.pathname.includes('/image/') ||
+             url.pathname.includes('/thumb/');
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Clean up tags that are no longer used by any bookmarks
+  cleanupOrphanedTags(): void {
+    const usedTags = new Set<string>();
+    
+    // Collect all tags currently in use
+    this.bookmarks.forEach(bookmark => {
+      if (bookmark.tags && bookmark.tags.length > 0) {
+        bookmark.tags.forEach(tag => usedTags.add(tag));
+      }
+    });
+    
+    // Update global tags to only include used tags
+    this.tags = usedTags;
+    this.saveTags();
+  }
+
+  // Update folder name
+  updateFolder(folderId: string, newName: string): boolean {
+    if (folderId === 'root') return false; // Cannot rename root folder
+    
+    const folder = this.folders.find(f => f.id === folderId);
+    if (!folder) return false;
+    
+    folder.name = newName;
+    this.saveFolders();
+    return true;
+  }
+
+  // Get folder path for display (e.g., "Work/Projects")
+  getFolderPath(folderId: string): string {
+    const folder = this.folders.find(f => f.id === folderId);
+    if (!folder) return 'Unknown';
+    
+    if (folder.parentId === null || folder.parentId === 'root') {
+      return folder.name === '/' ? '/' : folder.name;
+    }
+    
+    const parentPath = this.getFolderPath(folder.parentId);
+    if (parentPath === '/') {
+      return folder.name;
+    }
+    
+    return `${parentPath}/${folder.name}`;
+  }
+
+  // Global search across all bookmarks with location information
+  globalSearch(query: string): SearchResult[] {
+    if (!query || query.trim() === '') return [];
+    
+    const searchTerm = query.toLowerCase().trim();
+    const results: SearchResult[] = [];
+    
+    for (const bookmark of this.bookmarks) {
+      let bestMatch: {matchType: 'title' | 'url' | 'tag' | 'description', matchText: string} | null = null;
+      const matchPriority = { title: 0, tag: 1, description: 2, url: 3 };
+      
+      // Search in title (highest priority)
+      if (bookmark.title.toLowerCase().includes(searchTerm)) {
+        bestMatch = {
+          matchType: 'title',
+          matchText: bookmark.title
+        };
+      }
+      
+      // Search in tags (second priority)
+      if (!bestMatch || matchPriority.tag < matchPriority[bestMatch.matchType]) {
+        const matchingTag = bookmark.tags.find(tag => 
+          tag.toLowerCase().includes(searchTerm)
+        );
+        if (matchingTag) {
+          bestMatch = {
+            matchType: 'tag',
+            matchText: matchingTag
+          };
+        }
+      }
+      
+      // Search in OpenGraph description (third priority)
+      if (!bestMatch || matchPriority.description < matchPriority[bestMatch.matchType]) {
+        if (bookmark.openGraph?.description?.toLowerCase().includes(searchTerm)) {
+          bestMatch = {
+            matchType: 'description',
+            matchText: bookmark.openGraph.description
+          };
+        }
+      }
+      
+      // Search in URL (lowest priority)
+      if (!bestMatch || matchPriority.url < matchPriority[bestMatch.matchType]) {
+        if (bookmark.url.toLowerCase().includes(searchTerm)) {
+          bestMatch = {
+            matchType: 'url',
+            matchText: bookmark.url
+          };
+        }
+      }
+      
+      // Add only one result per bookmark (the best match)
+      if (bestMatch) {
+        results.push({
+          bookmark,
+          folderPath: this.getFolderPath(bookmark.folderId),
+          matchType: bestMatch.matchType,
+          matchText: bestMatch.matchText
+        });
+      }
+    }
+    
+    // Sort by relevance (title matches first, then others)
+    return results.sort((a, b) => {
+      const typeOrder = { title: 0, tag: 1, description: 2, url: 3 };
+      return typeOrder[a.matchType] - typeOrder[b.matchType];
+    });
+  }
+
   async updateBookmarkOnVisit(bookmarkId: string): Promise<Bookmark | null> {
     const bookmark = this.bookmarks.find(b => b.id === bookmarkId);
     if (!bookmark) return null;
@@ -537,6 +756,23 @@ export class BookmarkManager {
     try {
       const newFavicon = await this.extractFavicon(bookmark.url);
       bookmark.favicon = newFavicon;
+      bookmark.dateUpdated = new Date().toISOString();
+      
+      await this.saveBookmarks();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async refreshOpenGraph(bookmarkId: string): Promise<boolean> {
+    const bookmark = this.bookmarks.find(b => b.id === bookmarkId);
+    if (!bookmark) return false;
+
+    try {
+      const newOpenGraph = await this.extractOpenGraph(bookmark.url);
+      bookmark.openGraph = newOpenGraph || undefined;
+      bookmark.hasRichPreview = Boolean(newOpenGraph && (newOpenGraph.image || newOpenGraph.description));
       bookmark.dateUpdated = new Date().toISOString();
       
       await this.saveBookmarks();

@@ -11,15 +11,16 @@ interface ContextMenuProps {
   type: 'bookmark' | 'folder';
   onClose: () => void;
   onEdit?: () => void;
+  onEditFolder?: () => void;
 }
 
-const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, target, type, onClose, onEdit }) => {
-  const { deleteBookmark, deleteFolder, refreshFavicon } = useBookmarks();
+const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, target, type, onClose, onEdit, onEditFolder }) => {
+  const { deleteBookmark, deleteFolder, refreshFavicon, refreshOpenGraph } = useBookmarks();
 
   // Auto-adjust menu position within viewport
   const getAdjustedPosition = () => {
     const menuWidth = 160;
-    const menuHeight = type === 'bookmark' ? 200 : 60; // Bookmark has 6 items, folder has 1 item
+    const menuHeight = type === 'bookmark' ? 230 : 100; // Bookmark has 7 items, folder has 2 items
     const padding = 8;
     
     const viewportWidth = window.innerWidth;
@@ -77,6 +78,17 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, target, type, onClose, 
           }
           break;
 
+        case 'refresh-opengraph':
+          if (type === 'bookmark') {
+            const success = await refreshOpenGraph(target.id);
+            if (success) {
+              alert('OpenGraph data refreshed successfully!');
+            } else {
+              alert('Failed to refresh OpenGraph data');
+            }
+          }
+          break;
+
         case 'copy-url':
           if (type === 'bookmark') {
             try {
@@ -98,6 +110,13 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, target, type, onClose, 
           if (type === 'bookmark' && onEdit) {
             onEdit();
             return; // onClose is handled in onEdit, so return here
+          }
+          break;
+          
+        case 'edit-folder':
+          if (type === 'folder' && onEditFolder) {
+            onEditFolder();
+            return; // onClose is handled in onEditFolder, so return here
           }
           break;
       }
@@ -141,6 +160,24 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, target, type, onClose, 
             onClick={(e) => handleAction('refresh-favicon', e)}
           >
             &#128472; Refresh Favicon
+          </button>
+          <button 
+            className="context-menu-item"
+            onClick={(e) => handleAction('refresh-opengraph', e)}
+          >
+            &#128248; Refresh OpenGraph
+          </button>
+          <div className="context-menu-separator"></div>
+        </>
+      )}
+      
+      {type === 'folder' && (
+        <>
+          <button 
+            className="context-menu-item"
+            onClick={(e) => handleAction('edit-folder', e)}
+          >
+            ✏️ Edit Folder
           </button>
           <div className="context-menu-separator"></div>
         </>

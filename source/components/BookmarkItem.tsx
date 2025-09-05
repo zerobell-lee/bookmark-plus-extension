@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import { Bookmark } from '../types/Bookmark';
 import { useBookmarks } from '../context/BookmarkContext';
@@ -6,6 +6,7 @@ import './BookmarkItem.scss';
 
 interface BookmarkItemProps {
   bookmark: Bookmark;
+  viewMode: 'compact' | 'detailed';
   onRightClick: (e: React.MouseEvent) => void;
   onDragStart?: (e: React.DragEvent, bookmark: Bookmark) => void;
   onDragOver?: (e: React.DragEvent, bookmark: Bookmark) => void;
@@ -15,6 +16,7 @@ interface BookmarkItemProps {
 
 const BookmarkItem: React.FC<BookmarkItemProps> = ({ 
   bookmark, 
+  viewMode,
   onRightClick, 
   onDragStart,
   onDragOver,
@@ -22,18 +24,52 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({
   isDragOver = false
 }) => {
   const { updateBookmarkOnVisit } = useBookmarks();
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartTime, setDragStartTime] = useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 1) { // Middle click
+      e.preventDefault();
+      handleMiddleClick();
+    } else if (e.button === 0) { // Left click
+      setDragStartTime(Date.now());
+    }
+  };
 
   const handleClick = async (e: React.MouseEvent) => {
-    if (e.button === 0) { // Left click
-      e.preventDefault();
-      
-      try {
-        await updateBookmarkOnVisit(bookmark.id);
-        await browser.tabs.create({ url: bookmark.url });
-      } catch (error) {
-        console.error('Failed to open bookmark:', error);
+    // Only handle click if it wasn't a drag
+    if (e.button === 0 && !isDragging) {
+      const clickTime = Date.now() - dragStartTime;
+      // If mouse was held down for less than 200ms, treat as click
+      if (clickTime < 200) {
+        e.preventDefault();
+        
+        try {
+          await updateBookmarkOnVisit(bookmark.id);
+          await browser.tabs.create({ url: bookmark.url });
+        } catch (error) {
+          console.error('Failed to open bookmark:', error);
+        }
       }
     }
+  };
+
+  const handleMiddleClick = async () => {
+    try {
+      await updateBookmarkOnVisit(bookmark.id);
+      await browser.tabs.create({ url: bookmark.url, active: false });
+    } catch (error) {
+      console.error('Failed to open bookmark in background tab:', error);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent) => {
+    setIsDragging(true);
+    onDragStart?.(e, bookmark);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
   };
 
   const formatDate = (dateString: string): string => {
@@ -52,11 +88,13 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({
 
   return (
     <div 
-      className={`bookmark-item ${isDragOver ? 'drag-over' : ''}`}
+      className={`bookmark-item ${viewMode === 'detailed' ? 'detailed-view' : 'compact-view'} ${isDragOver ? 'drag-over' : ''}`}
       onClick={handleClick}
+      onMouseDown={handleMouseDown}
       onContextMenu={onRightClick}
       draggable
-      onDragStart={(e) => onDragStart?.(e, bookmark)}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onDragOver={(e) => {
         e.preventDefault();
         onDragOver?.(e, bookmark);
@@ -65,7 +103,7 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({
         e.preventDefault();
         onDrop?.(e, bookmark);
       }}
-      title={`${bookmark.title}\n${bookmark.url}\nVisited: ${bookmark.visitCount} times\nAdded: ${formatDate(bookmark.dateAdded)}`}
+      title={`${bookmark.title}\n${bookmark.url}\nLeft click: Open in current tab\nMiddle click: Open in new background tab\nAdded: ${formatDate(bookmark.dateAdded)}`}
     >
       <div className="bookmark-favicon">
         {bookmark.favicon ? (
@@ -95,14 +133,40 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({
             ))}
           </div>
         )}
+
+        {/* Rich Preview for OpenGraph data - only in detailed view */}
+        {viewMode === 'detailed' && bookmark.hasRichPreview && bookmark.openGraph && (
+          <div className="bookmark-rich-preview">
+            {bookmark.openGraph.image && (
+              <div className="rich-preview-image">
+                <img 
+                  src={bookmark.openGraph.image}
+                  alt="Preview"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+            <div className="rich-preview-content">
+              {bookmark.openGraph.description && (
+                <div className="rich-preview-description">
+                  {bookmark.openGraph.description}
+                </div>
+              )}
+              {bookmark.openGraph.siteName && (
+                <div className="rich-preview-site">
+                  {bookmark.openGraph.siteName}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
       
       <div className="bookmark-meta">
-        {bookmark.visitCount > 0 && (
-          <span className="visit-count" title={`Visited ${bookmark.visitCount} times`}>
-            {bookmark.visitCount}&#128065;
-          </span>
-        )}
+        {/* Visit count is tracked internally but not displayed */}
       </div>
     </div>
   );

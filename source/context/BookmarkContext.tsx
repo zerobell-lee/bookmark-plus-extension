@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { BookmarkState, Bookmark, Folder } from '../types/Bookmark';
+import { BookmarkState, Bookmark, Folder, SearchResult } from '../types/Bookmark';
 import { BookmarkManager } from '../services/BookmarkManager';
 
 // Initial state
@@ -9,6 +9,7 @@ const initialState: BookmarkState = {
   tags: new Set(),
   currentFolderId: 'root',
   currentView: 'folder',
+  viewMode: 'compact',
   selectedTags: new Set(),
   searchQuery: '',
 };
@@ -21,12 +22,15 @@ type BookmarkAction =
   | { type: 'UPDATE_BOOKMARK'; payload: Bookmark }
   | { type: 'ADD_FOLDER'; payload: Folder }
   | { type: 'DELETE_FOLDER'; payload: string }
+  | { type: 'UPDATE_FOLDER'; payload: Folder }
   | { type: 'SET_CURRENT_FOLDER'; payload: string }
   | { type: 'SET_VIEW'; payload: 'folder' | 'tag' }
+  | { type: 'SET_VIEW_MODE'; payload: 'compact' | 'detailed' }
   | { type: 'SET_SELECTED_TAGS'; payload: Set<string> }
   | { type: 'SET_SEARCH_QUERY'; payload: string }
   | { type: 'ADD_TAG'; payload: string }
-  | { type: 'REMOVE_TAG'; payload: string };
+  | { type: 'REMOVE_TAG'; payload: string }
+  | { type: 'CLEANUP_ORPHANED_TAGS'; payload: Set<string> };
 
 // Reducer
 function bookmarkReducer(state: BookmarkState, action: BookmarkAction): BookmarkState {
@@ -73,6 +77,14 @@ function bookmarkReducer(state: BookmarkState, action: BookmarkAction): Bookmark
         bookmarks: state.bookmarks.filter(b => b.folderId !== action.payload),
       };
 
+    case 'UPDATE_FOLDER':
+      return {
+        ...state,
+        folders: state.folders.map(f => 
+          f.id === action.payload.id ? action.payload : f
+        ),
+      };
+
     case 'SET_CURRENT_FOLDER':
       return {
         ...state,
@@ -83,6 +95,12 @@ function bookmarkReducer(state: BookmarkState, action: BookmarkAction): Bookmark
       return {
         ...state,
         currentView: action.payload,
+      };
+
+    case 'SET_VIEW_MODE':
+      return {
+        ...state,
+        viewMode: action.payload,
       };
 
     case 'SET_SELECTED_TAGS':
@@ -111,6 +129,12 @@ function bookmarkReducer(state: BookmarkState, action: BookmarkAction): Bookmark
         tags: newTags,
       };
 
+    case 'CLEANUP_ORPHANED_TAGS':
+      return {
+        ...state,
+        tags: action.payload,
+      };
+
     default:
       return state;
   }
@@ -127,16 +151,21 @@ interface BookmarkContextType {
   deleteBookmark: (id: string) => Promise<void>;
   addFolder: (name: string, parentId?: string) => Promise<void>;
   deleteFolder: (id: string) => Promise<void>;
+  updateFolder: (id: string, name: string) => Promise<void>;
   setCurrentFolder: (folderId: string) => void;
   setView: (view: 'folder' | 'tag') => void;
+  setViewMode: (mode: 'compact' | 'detailed') => void;
   setSelectedTags: (tags: Set<string>) => void;
   setSearchQuery: (query: string) => void;
   addTagToBookmark: (bookmarkId: string, tag: string) => Promise<void>;
+  removeTagFromBookmark: (bookmarkId: string, tag: string) => Promise<void>;
   refreshFavicon: (bookmarkId: string) => Promise<boolean>;
+  refreshOpenGraph: (bookmarkId: string) => Promise<boolean>;
   updateBookmarkOnVisit: (bookmarkId: string) => Promise<void>;
   reorderBookmarks: (fromIndex: number, toIndex: number) => Promise<void>;
   exportBookmarks: () => void;
   importBookmarks: (jsonData: string, options?: { merge: boolean; validateVersion: boolean }) => Promise<any>;
+  globalSearch: (query: string) => SearchResult[];
 }
 
 const BookmarkContext = createContext<BookmarkContextType | undefined>(undefined);
@@ -188,6 +217,8 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
     const success = bookmarkManager.deleteBookmark(id);
     if (success) {
       dispatch({ type: 'DELETE_BOOKMARK', payload: id });
+      // Update tags after cleanup
+      dispatch({ type: 'CLEANUP_ORPHANED_TAGS', payload: new Set(bookmarkManager.getAllTags()) });
     }
   };
 
@@ -203,12 +234,26 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
     }
   };
 
+  const updateFolder = async (id: string, name: string) => {
+    const success = bookmarkManager.updateFolder(id, name);
+    if (success) {
+      const updatedFolder = bookmarkManager.getFolders().find(f => f.id === id);
+      if (updatedFolder) {
+        dispatch({ type: 'UPDATE_FOLDER', payload: updatedFolder });
+      }
+    }
+  };
+
   const setCurrentFolder = (folderId: string) => {
     dispatch({ type: 'SET_CURRENT_FOLDER', payload: folderId });
   };
 
   const setView = (view: 'folder' | 'tag') => {
     dispatch({ type: 'SET_VIEW', payload: view });
+  };
+
+  const setViewMode = (mode: 'compact' | 'detailed') => {
+    dispatch({ type: 'SET_VIEW_MODE', payload: mode });
   };
 
   const setSelectedTags = (tags: Set<string>) => {
@@ -231,10 +276,35 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
     }
   };
 
+  const removeTagFromBookmark = async (bookmarkId: string, tag: string) => {
+    bookmarkManager.removeTagFromBookmark(bookmarkId, tag);
+    
+    // Update the bookmark in state
+    const bookmark = state.bookmarks.find(b => b.id === bookmarkId);
+    if (bookmark && bookmark.tags.includes(tag)) {
+      const updatedBookmark = { ...bookmark, tags: bookmark.tags.filter(t => t !== tag) };
+      dispatch({ type: 'UPDATE_BOOKMARK', payload: updatedBookmark });
+    }
+    
+    // Update tags after cleanup (cleanupOrphanedTags is called automatically in BookmarkManager)
+    dispatch({ type: 'CLEANUP_ORPHANED_TAGS', payload: new Set(bookmarkManager.getAllTags()) });
+  };
+
   const refreshFavicon = async (bookmarkId: string): Promise<boolean> => {
     const success = await bookmarkManager.refreshFavicon(bookmarkId);
     if (success) {
       const updatedBookmark = state.bookmarks.find(b => b.id === bookmarkId);
+      if (updatedBookmark) {
+        dispatch({ type: 'UPDATE_BOOKMARK', payload: updatedBookmark });
+      }
+    }
+    return success;
+  };
+
+  const refreshOpenGraph = async (bookmarkId: string): Promise<boolean> => {
+    const success = await bookmarkManager.refreshOpenGraph(bookmarkId);
+    if (success) {
+      const updatedBookmark = bookmarkManager.getBookmarks().find(b => b.id === bookmarkId);
       if (updatedBookmark) {
         dispatch({ type: 'UPDATE_BOOKMARK', payload: updatedBookmark });
       }
@@ -268,6 +338,10 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
     return result;
   };
 
+  const globalSearch = (query: string): SearchResult[] => {
+    return bookmarkManager.globalSearch(query);
+  };
+
   // Load data on mount
   useEffect(() => {
     loadData();
@@ -282,16 +356,21 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
     deleteBookmark,
     addFolder,
     deleteFolder,
+    updateFolder,
     setCurrentFolder,
     setView,
+    setViewMode,
     setSelectedTags,
     setSearchQuery,
     addTagToBookmark,
+    removeTagFromBookmark,
     refreshFavicon,
+    refreshOpenGraph,
     updateBookmarkOnVisit,
     reorderBookmarks,
     exportBookmarks,
     importBookmarks,
+    globalSearch,
   };
 
   return (

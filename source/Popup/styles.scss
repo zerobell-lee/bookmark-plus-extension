@@ -6,18 +6,23 @@ body {
   color: var(--text-primary);
   background-color: var(--bg-secondary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden !important; // Force no scroll on popup
+  height: 100vh;
+  max-height: 100vh;
 }
 
 .popup-container {
   min-width: 480px;
   max-width: 620px;
-  height: 680px; // Fixed height
+  max-height: 600px !important; // Max height only, let content determine actual size
   padding: 0;
-  overflow: hidden;
+  overflow: hidden !important; // Prevent any scrolling on popup itself
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 
   .popup-header {
+    flex: none; // Prevent shrinking
     background: var(--bg-primary);
     border-bottom: 1px solid var(--border-light);
     padding: 12px 16px;
@@ -68,37 +73,96 @@ body {
     }
   }
 
-  .view-switcher {
-    display: flex;
+  // Fix SearchBar positioning
+  .search-bar {
+    flex: none; // Prevent shrinking
+  }
+
+  .popup-content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    max-height: calc(600px - 120px); // Reserve space for headers
+  }
+
+  .view-controls {
+    flex: none; // Prevent shrinking
     background: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 8px;
-    gap: 4px;
-    
-    .view-btn {
-      flex: 1;
-      padding: 8px 16px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      transition: all 0.15s ease;
-      border-radius: 6px;
+    gap: 16px;
+
+    .view-switcher {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      gap: 4px;
+      flex: 0 1 auto;
+      
+      .view-btn {
+        flex: 0 0 auto;
+        padding: 8px 16px;
+        min-width: 80px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        transition: all 0.15s ease;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
 
-      &:hover {
-        background: var(--bg-hover);
-        color: var(--text-primary);
+        &:hover {
+          background: var(--bg-hover);
+          color: var(--text-primary);
+        }
+
+        &.active {
+          background: var(--btn-primary-bg);
+          color: var(--text-inverse);
+        }
       }
+    }
 
-      &.active {
-        background: var(--btn-primary-bg);
-        color: var(--text-inverse);
+    .view-mode-switcher {
+      display: flex;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+
+      .view-mode-btn {
+        background: var(--bg-primary);
+        border: none;
+        padding: 6px 10px;
+        color: var(--text-muted);
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-right: 1px solid var(--border-color);
+        width: 32px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:last-child {
+          border-right: none;
+        }
+
+        &:hover {
+          background: var(--bg-secondary);
+          color: var(--text-primary);
+        }
+
+        &.active {
+          background: var(--btn-primary-bg);
+          color: var(--text-inverse);
+        }
       }
     }
   }

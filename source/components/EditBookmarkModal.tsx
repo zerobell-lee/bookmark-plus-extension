@@ -10,7 +10,7 @@ interface EditBookmarkModalProps {
 }
 
 const EditBookmarkModal: React.FC<EditBookmarkModalProps> = ({ bookmark, onClose }) => {
-  const { state, bookmarkManager, loadData } = useBookmarks();
+  const { state, bookmarkManager, loadData, removeTagFromBookmark } = useBookmarks();
   const [title, setTitle] = useState(bookmark.title);
   const [tags, setTags] = useState(bookmark.tags);
   const [selectedFolderId, setSelectedFolderId] = useState(bookmark.folderId);
@@ -105,6 +105,15 @@ const EditBookmarkModal: React.FC<EditBookmarkModalProps> = ({ bookmark, onClose
     }
   };
 
+  // Handle immediate tag removal
+  const handleTagRemove = async (tag: string) => {
+    try {
+      await removeTagFromBookmark(bookmark.id, tag);
+    } catch (error) {
+      console.error('Failed to remove tag:', error);
+    }
+  };
+
   // Recommend frequently used tags from existing tags
   const suggestedTags = Array.from(state.tags)
     .filter(tag => !tags.includes(tag))
@@ -179,6 +188,7 @@ const EditBookmarkModal: React.FC<EditBookmarkModalProps> = ({ bookmark, onClose
               tags={tags}
               allTags={Array.from(state.tags)}
               onChange={setTags}
+              onRemoveTag={handleTagRemove}
               placeholder="Type to add tags..."
               onSave={saveBookmark}
             />

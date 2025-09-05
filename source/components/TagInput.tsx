@@ -5,6 +5,7 @@ interface TagInputProps {
   tags: string[];
   allTags: string[];
   onChange: (tags: string[]) => void;
+  onRemoveTag?: (tag: string) => void; // Called immediately when a tag is removed
   placeholder?: string;
   onSave?: () => void; // Save function to be called when Enter is pressed in empty state
 }
@@ -13,6 +14,7 @@ const TagInput: React.FC<TagInputProps> = ({
   tags, 
   allTags, 
   onChange, 
+  onRemoveTag,
   placeholder = "Add tags...",
   onSave
 }) => {
@@ -53,6 +55,10 @@ const TagInput: React.FC<TagInputProps> = ({
 
   const removeTag = (tagToRemove: string) => {
     onChange(tags.filter(tag => tag !== tagToRemove));
+    // Call the immediate remove callback if provided
+    if (onRemoveTag) {
+      onRemoveTag(tagToRemove);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

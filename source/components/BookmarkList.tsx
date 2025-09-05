@@ -11,6 +11,7 @@ interface BookmarkListProps {
   onRightClick: (e: React.MouseEvent, item: Bookmark | Folder, type: 'bookmark' | 'folder') => void;
   onFolderClick: (folderId: string) => void;
   currentView: 'folder' | 'tag';
+  viewMode: 'compact' | 'detailed';
   selectedTags: Set<string>;
   onTagToggle: (tag: string) => void;
   allTags: Set<string>;
@@ -23,6 +24,7 @@ const BookmarkList: React.FC<BookmarkListProps> = ({
   onRightClick,
   onFolderClick,
   currentView,
+  viewMode,
   selectedTags,
   onTagToggle,
   allTags,
@@ -69,6 +71,7 @@ const BookmarkList: React.FC<BookmarkListProps> = ({
               <BookmarkItem
                 key={bookmark.id}
                 bookmark={bookmark}
+                viewMode={viewMode}
                 onRightClick={(e) => onRightClick(e, bookmark, 'bookmark')}
                 onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
@@ -109,6 +112,7 @@ const BookmarkList: React.FC<BookmarkListProps> = ({
             <BookmarkItem
               key={bookmark.id}
               bookmark={bookmark}
+              viewMode={viewMode}
               onRightClick={(e) => onRightClick(e, bookmark, 'bookmark')}
               onDragStart={handleDragStart}
               onDragOver={handleDragOver}

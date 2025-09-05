@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { browser } from 'webextension-polyfill-ts';
 import { useBookmarks } from '../context/BookmarkContext';
-import { Bookmark, Folder } from '../types/Bookmark';
+import { Bookmark, Folder, SearchResult } from '../types/Bookmark';
 import BookmarkList from '../components/BookmarkList';
 import FolderNavigation from '../components/FolderNavigation';
 import SearchBar from '../components/SearchBar';
+import SearchResults from '../components/SearchResults';
 import AddBookmarkModal from '../components/AddBookmarkModal';
 import AddFolderModal from '../components/AddFolderModal';
 import EditBookmarkModal from '../components/EditBookmarkModal';
+import EditFolderModal from '../components/EditFolderModal';
 import ContextMenu from '../components/ContextMenu';
 import { ThemeToggle } from '../components/ThemeToggle';
 import '../components/ThemeToggle.scss';
@@ -17,16 +20,19 @@ const Popup: React.FC = () => {
     state,
     setCurrentFolder,
     setView,
+    setViewMode,
     setSelectedTags,
     setSearchQuery,
     exportBookmarks,
     importBookmarks,
-    reorderBookmarks
+    reorderBookmarks,
+    globalSearch
   } = useBookmarks();
 
   const [showAddBookmarkModal, setShowAddBookmarkModal] = useState(false);
   const [showAddFolderModal, setShowAddFolderModal] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
+  const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     show: boolean;
     x: number;
@@ -62,6 +68,26 @@ const Popup: React.FC = () => {
     });
   };
 
+  const handleBookmarkClick = async (url: string, inBackground: boolean = false) => {
+    // Open bookmark in new tab
+    try {
+      await browser.tabs.create({ url, active: !inBackground });
+    } catch (error) {
+      console.error('Failed to open bookmark:', error);
+      window.open(url, '_blank');
+    }
+  };
+
+  const handleSearchResultRightClick = (e: React.MouseEvent, searchResult: SearchResult) => {
+    setContextMenu({
+      show: true,
+      x: e.clientX,
+      y: e.clientY,
+      target: searchResult.bookmark,
+      type: 'bookmark'
+    });
+  };
+
   const getCurrentFolderBookmarks = (): Bookmark[] => {
     if (state.currentView === 'tag') {
       return state.bookmarks.filter(bookmark => 
@@ -90,6 +116,14 @@ const Popup: React.FC = () => {
     
     return bookmarks;
   };
+
+  // Use global search when there's a search query
+  const searchResults: SearchResult[] = useMemo(() => {
+    if (state.searchQuery && state.searchQuery.trim().length > 0) {
+      return globalSearch(state.searchQuery);
+    }
+    return [];
+  }, [state.searchQuery, globalSearch]);
 
   const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -177,48 +211,85 @@ const Popup: React.FC = () => {
         onSearchChange={setSearchQuery}
       />
 
-      <div className="view-switcher">
-        <button 
-          className={`view-btn ${state.currentView === 'folder' ? 'active' : ''}`}
-          onClick={() => setView('folder')}
-        >
-          &#128193; Folders
-        </button>
-        <button 
-          className={`view-btn ${state.currentView === 'tag' ? 'active' : ''}`}
-          onClick={() => setView('tag')}
-        >
-          &#127991; Tags
-        </button>
+      <div className="view-controls">
+        <div className="view-switcher">
+          <button 
+            className={`view-btn ${state.currentView === 'folder' ? 'active' : ''}`}
+            onClick={() => setView('folder')}
+          >
+            &#128193; Folders
+          </button>
+          <button 
+            className={`view-btn ${state.currentView === 'tag' ? 'active' : ''}`}
+            onClick={() => setView('tag')}
+          >
+            &#127991; Tags
+          </button>
+        </div>
+        
+        <div className="view-mode-switcher">
+          <button 
+            className={`view-mode-btn ${state.viewMode === 'compact' ? 'active' : ''}`}
+            onClick={() => setViewMode('compact')}
+            title="Compact View"
+          >
+            &#9776;
+          </button>
+          <button 
+            className={`view-mode-btn ${state.viewMode === 'detailed' ? 'active' : ''}`}
+            onClick={() => setViewMode('detailed')}
+            title="Detailed View"
+          >
+            &#9783;
+          </button>
+        </div>
       </div>
 
-      {state.currentView === 'folder' && (
-        <FolderNavigation 
-          currentFolderId={state.currentFolderId}
-          folders={state.folders}
-          onFolderClick={setCurrentFolder}
-        />
-      )}
+      <div className="popup-content">
+        {!state.searchQuery && state.currentView === 'folder' && (
+          <FolderNavigation 
+            currentFolderId={state.currentFolderId}
+            folders={state.folders}
+            onFolderClick={setCurrentFolder}
+          />
+        )}
 
-      <BookmarkList 
-        bookmarks={getFilteredBookmarks()}
-        folders={getCurrentFolderSubfolders()}
-        onRightClick={handleRightClick}
-        onFolderClick={setCurrentFolder}
-        currentView={state.currentView}
-        selectedTags={state.selectedTags}
-        onTagToggle={(tag) => {
-          const newSelectedTags = new Set(state.selectedTags);
-          if (newSelectedTags.has(tag)) {
-            newSelectedTags.delete(tag);
-          } else {
-            newSelectedTags.add(tag);
-          }
-          setSelectedTags(newSelectedTags);
-        }}
-        allTags={state.tags}
-        onReorderBookmarks={reorderBookmarks}
-      />
+        {/* Show SearchResults when searching, otherwise show BookmarkList */}
+        {state.searchQuery && searchResults.length > 0 ? (
+          <SearchResults 
+            results={searchResults}
+            onBookmarkClick={handleBookmarkClick}
+            onBookmarkRightClick={handleSearchResultRightClick}
+          />
+        ) : state.searchQuery && searchResults.length === 0 ? (
+          <SearchResults 
+            results={[]}
+            onBookmarkClick={handleBookmarkClick}
+            onBookmarkRightClick={handleSearchResultRightClick}
+          />
+        ) : (
+          <BookmarkList 
+            bookmarks={getFilteredBookmarks()}
+            folders={getCurrentFolderSubfolders()}
+            onRightClick={handleRightClick}
+            onFolderClick={setCurrentFolder}
+            currentView={state.currentView}
+            viewMode={state.viewMode}
+            selectedTags={state.selectedTags}
+            onTagToggle={(tag) => {
+              const newSelectedTags = new Set(state.selectedTags);
+              if (newSelectedTags.has(tag)) {
+                newSelectedTags.delete(tag);
+              } else {
+                newSelectedTags.add(tag);
+              }
+              setSelectedTags(newSelectedTags);
+            }}
+            allTags={state.tags}
+            onReorderBookmarks={reorderBookmarks}
+          />
+        )}
+      </div>
 
       {showAddBookmarkModal && (
         <AddBookmarkModal
@@ -241,6 +312,13 @@ const Popup: React.FC = () => {
         />
       )}
 
+      {editingFolder && (
+        <EditFolderModal
+          folder={editingFolder}
+          onClose={() => setEditingFolder(null)}
+        />
+      )}
+
       {contextMenu.show && contextMenu.target && (
         <ContextMenu
           x={contextMenu.x}
@@ -251,6 +329,12 @@ const Popup: React.FC = () => {
           onEdit={() => {
             if (contextMenu.type === 'bookmark' && contextMenu.target) {
               setEditingBookmark(contextMenu.target as Bookmark);
+              hideContextMenu();
+            }
+          }}
+          onEditFolder={() => {
+            if (contextMenu.type === 'folder' && contextMenu.target) {
+              setEditingFolder(contextMenu.target as Folder);
               hideContextMenu();
             }
           }}

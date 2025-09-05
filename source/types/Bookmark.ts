@@ -1,3 +1,12 @@
+export interface OpenGraphData {
+  title?: string;
+  description?: string;
+  image?: string;
+  siteName?: string;
+  type?: string; // video, article, website, etc.
+  url?: string;
+}
+
 export interface Bookmark {
   id: string;
   title: string;
@@ -5,6 +14,8 @@ export interface Bookmark {
   folderId: string;
   tags: string[];
   favicon?: string;
+  openGraph?: OpenGraphData;
+  hasRichPreview?: boolean; // UI display flag
   dateAdded: string;
   dateUpdated: string;
   visitCount: number;
@@ -27,6 +38,7 @@ export interface BookmarkState {
   tags: Set<string>;
   currentFolderId: string;
   currentView: 'folder' | 'tag';
+  viewMode: 'compact' | 'detailed';
   selectedTags: Set<string>;
   searchQuery: string;
 }
@@ -54,6 +66,13 @@ export interface ExportData {
   exportDate: string;
   version: string;
   appVersion: string;
+}
+
+export interface SearchResult {
+  bookmark: Bookmark;
+  folderPath: string; // e.g., "Work/Projects" or "/" for root
+  matchType: 'title' | 'url' | 'tag' | 'description';
+  matchText: string; // The actual matched text
 }
 
 export interface ContextMenuTarget {

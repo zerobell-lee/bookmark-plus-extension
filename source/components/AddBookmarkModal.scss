@@ -76,7 +76,7 @@
       display: block;
       font-size: 14px;
       font-weight: 500;
-      color: #495057;
+      color: var(--text-color);
       margin-bottom: 6px;
     }
 
@@ -133,11 +133,11 @@
       font-size: 11px;
       
       kbd {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
         border-radius: 3px;
-        box-shadow: 0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px #ffffff;
-        color: #495057;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+        color: var(--text-color);
         display: inline-block;
         font-size: 10px;
         font-family: monospace;
